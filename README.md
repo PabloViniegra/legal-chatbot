@@ -414,7 +414,7 @@ If you have any questions or need help, please:
 
 <div align="center">
 
-**Made with ❤️ and ☕ by [Your Name]**
+**Made with ❤️ and ☕ by [Pablo Viniegra Picazo](https://github.com/PabloViniegra)**
 
 ⭐ Star this repository if you find it helpful!
 

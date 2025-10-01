@@ -1,4 +1,5 @@
 import { vi } from 'vitest';
+import '@testing-library/jest-dom/vitest';
 
 // Mock del logger global
 vi.mock('@/lib/logger', () => ({

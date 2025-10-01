@@ -1,4 +1,5 @@
 import { AnimatedNavbar } from "@/components/layout/animated-navbar";
+import { DashboardFooter } from "@/components/footer/dashboard-footer";
 import type { Metadata } from "next";
 import { generatePageMetadata } from "@/lib/seo.config";
 
@@ -17,7 +18,8 @@ export default function DashboardLayout({
   return (
     <div className="min-h-screen bg-background font-sans">
       <AnimatedNavbar />
-      <main className="bg-background">{children}</main>
+      <main className="bg-background pb-14">{children}</main>
+      <DashboardFooter />
     </div>
   );
 }
