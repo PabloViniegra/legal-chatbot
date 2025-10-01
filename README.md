@@ -408,7 +408,7 @@ This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) 
 If you have any questions or need help, please:
 
 - Open an [Issue](https://github.com/PabloViniegra/legal-chatbot/issues)
-- Contact: your.email@example.com
+- Contact: pablovpmadrid@gmail.com
 
 ---
 

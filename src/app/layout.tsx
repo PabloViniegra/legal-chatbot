@@ -4,6 +4,13 @@ import "./globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
 import { esES } from "@clerk/localizations";
 import { ThemeProvider } from "@/components/providers/theme-provider";
+import { DEFAULT_METADATA } from "@/lib/seo.config";
+import {
+  generateOrganizationSchema,
+  generateWebsiteSchema,
+  generateWebApplicationSchema,
+  jsonLdScriptProps,
+} from "@/lib/structured-data";
 
 export const arvo = Arvo({
   subsets: ["latin"],
@@ -21,19 +28,28 @@ export const jetbrainsMono = JetBrains_Mono({
   variable: "--font-mono",
 });
 
-export const metadata: Metadata = {
-  title: "LexIA - Asistente Legal IA",
-  description: "Chatbot especializado en legislación española",
-};
+// Enhanced SEO metadata
+export const metadata: Metadata = DEFAULT_METADATA;
 
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Generate structured data schemas
+  const organizationSchema = generateOrganizationSchema();
+  const websiteSchema = generateWebsiteSchema();
+  const webApplicationSchema = generateWebApplicationSchema();
+
   return (
     <ClerkProvider localization={esES}>
       <html lang="es" suppressHydrationWarning>
+        <head>
+          {/* JSON-LD Structured Data for SEO */}
+          <script {...jsonLdScriptProps(organizationSchema)} />
+          <script {...jsonLdScriptProps(websiteSchema)} />
+          <script {...jsonLdScriptProps(webApplicationSchema)} />
+        </head>
         <body
           className={`${arvo.variable} ${montserrat.variable} ${jetbrainsMono.variable} antialiased`}
         >

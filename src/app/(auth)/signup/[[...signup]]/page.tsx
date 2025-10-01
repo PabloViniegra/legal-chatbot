@@ -1,6 +1,14 @@
 import { SignUp } from "@clerk/nextjs";
 import { Scale } from "lucide-react";
 import { AnimatedAuthWrapper } from "@/components/auth/animated-auth-wrapper";
+import type { Metadata } from "next";
+import { generatePageMetadata } from "@/lib/seo.config";
+
+export const metadata: Metadata = generatePageMetadata({
+  title: "Registrarse",
+  description: "Crea tu cuenta en LexIA y accede a tu asistente legal inteligente. Consultas ilimitadas sobre legislación española con inteligencia artificial.",
+  path: "/signup",
+});
 
 export default function SignUpPage() {
   return (

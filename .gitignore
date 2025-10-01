@@ -88,3 +88,6 @@ Thumbs.db
 # Claude
 CLAUDE.md
 .claude/*
+
+SEO_USAGE_EXAMPLES.md
+SEO_IMPLEMENTATION.md

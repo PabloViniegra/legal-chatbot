@@ -1,6 +1,14 @@
 import { SignIn } from "@clerk/nextjs";
 import { Scale } from "lucide-react";
 import { AnimatedAuthWrapper } from "@/components/auth/animated-auth-wrapper";
+import type { Metadata } from "next";
+import { generatePageMetadata } from "@/lib/seo.config";
+
+export const metadata: Metadata = generatePageMetadata({
+  title: "Iniciar Sesión",
+  description: "Accede a LexIA, tu asistente legal inteligente especializado en legislación española. Consulta tus dudas legales con inteligencia artificial.",
+  path: "/signin",
+});
 
 export default function SignInPage() {
   return (
