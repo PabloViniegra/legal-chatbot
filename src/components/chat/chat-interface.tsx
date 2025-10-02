@@ -10,7 +10,16 @@ interface ChatInterfaceProps {
 }
 
 export function ChatInterface({ conversationId }: ChatInterfaceProps) {
-  const { messages, input, setInput, sendMessage, isLoading, isLoadingMessages } = useChat({
+  const {
+    messages,
+    input,
+    setInput,
+    sendMessage,
+    isLoading,
+    isLoadingMessages,
+    selectedCategory,
+    setSelectedCategory,
+  } = useChat({
     conversationId,
   });
 
@@ -39,6 +48,9 @@ export function ChatInterface({ conversationId }: ChatInterfaceProps) {
         setInput={setInput}
         onSubmit={handleSubmit}
         isLoading={isLoading}
+        selectedCategory={selectedCategory}
+        setSelectedCategory={setSelectedCategory}
+        hasConversationId={!!conversationId}
       />
     </Card>
   );

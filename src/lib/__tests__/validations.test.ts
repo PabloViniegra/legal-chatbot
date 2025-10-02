@@ -8,7 +8,7 @@ import {
 
 describe('validations', () => {
   describe('createConversationSchema', () => {
-    it('debería validar una conversación válida', () => {
+    it('debería validar una conversación válida con categoría', () => {
       const validData = {
         title: 'Consulta sobre despido',
         category: 'laboral' as const,
@@ -18,18 +18,19 @@ describe('validations', () => {
       expect(result).toEqual(validData);
     });
 
-    it('debería validar conversación sin categoría', () => {
-      const validData = {
+    it('debería rechazar conversación sin categoría (categoría obligatoria)', () => {
+      const invalidData = {
         title: 'Consulta general',
       };
 
-      const result = createConversationSchema.parse(validData);
-      expect(result.category).toBeUndefined();
+      expect(() => createConversationSchema.parse(invalidData)).toThrow();
+      expect(() => createConversationSchema.parse(invalidData)).toThrow('La categoría es obligatoria');
     });
 
     it('debería rechazar título vacío', () => {
       const invalidData = {
         title: '',
+        category: 'civil' as const,
       };
 
       expect(() => createConversationSchema.parse(invalidData)).toThrow();
@@ -38,6 +39,7 @@ describe('validations', () => {
     it('debería rechazar título muy largo (>100 caracteres)', () => {
       const invalidData = {
         title: 'a'.repeat(101),
+        category: 'civil' as const,
       };
 
       expect(() => createConversationSchema.parse(invalidData)).toThrow();
@@ -180,7 +182,7 @@ describe('validations', () => {
   });
 
   describe('chatRequestSchema', () => {
-    it('debería validar request con conversationId', () => {
+    it('debería validar request con conversationId existente (categoría opcional)', () => {
       const validData = {
         messages: [
           { role: 'user' as const, content: 'Hola' },
@@ -194,32 +196,63 @@ describe('validations', () => {
       expect(result.conversationId).toBe(validData.conversationId);
     });
 
-    it('debería validar request sin conversationId (nueva conversación)', () => {
+    it('debería rechazar nueva conversación sin categoría', () => {
+      const invalidData = {
+        messages: [{ role: 'user' as const, content: 'Primera consulta' }],
+        // No hay conversationId ni categoría
+      };
+
+      expect(() => chatRequestSchema.parse(invalidData)).toThrow();
+      expect(() => chatRequestSchema.parse(invalidData)).toThrow(
+        'La categoría es obligatoria para nuevas conversaciones'
+      );
+    });
+
+    it('debería validar nueva conversación CON categoría', () => {
       const validData = {
         messages: [{ role: 'user' as const, content: 'Primera consulta' }],
+        category: 'civil' as const,
       };
 
       const result = chatRequestSchema.parse(validData);
       expect(result.conversationId).toBeUndefined();
+      expect(result.category).toBe('civil');
+    });
+
+    it('debería aceptar conversación existente con categoría (aunque no es necesaria)', () => {
+      const validData = {
+        messages: [{ role: 'user' as const, content: 'Mensaje' }],
+        conversationId: 'clw3z4x5y0000abc123def456',
+        category: 'laboral' as const,
+      };
+
+      const result = chatRequestSchema.parse(validData);
+      expect(result.conversationId).toBe('clw3z4x5y0000abc123def456');
+      expect(result.category).toBe('laboral');
     });
 
     it('debería rechazar array de mensajes vacío', () => {
       const invalidData = {
         messages: [],
+        category: 'civil' as const,
       };
 
       expect(() => chatRequestSchema.parse(invalidData)).toThrow();
+      expect(() => chatRequestSchema.parse(invalidData)).toThrow(
+        'Debe haber al menos un mensaje'
+      );
     });
 
     it('debería rechazar mensaje con contenido vacío', () => {
       const invalidData = {
         messages: [{ role: 'user' as const, content: '' }],
+        category: 'civil' as const,
       };
 
       expect(() => chatRequestSchema.parse(invalidData)).toThrow();
     });
 
-    it('debería validar múltiples mensajes', () => {
+    it('debería validar múltiples mensajes con conversationId', () => {
       const validData = {
         messages: [
           { role: 'system' as const, content: 'System prompt' },
@@ -227,10 +260,20 @@ describe('validations', () => {
           { role: 'assistant' as const, content: 'Respuesta 1' },
           { role: 'user' as const, content: 'Pregunta 2' },
         ],
+        conversationId: 'clw3z4x5y0000abc123def456',
       };
 
       const result = chatRequestSchema.parse(validData);
       expect(result.messages).toHaveLength(4);
+    });
+
+    it('debería rechazar categoría inválida', () => {
+      const invalidData = {
+        messages: [{ role: 'user' as const, content: 'Test' }],
+        category: 'invalid',
+      };
+
+      expect(() => chatRequestSchema.parse(invalidData)).toThrow();
     });
   });
 });

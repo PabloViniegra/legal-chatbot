@@ -20,8 +20,18 @@ export function useChat(options: UseChatOptions = {}) {
   const [conversationId, setConversationId] = useState<string | undefined>(
     initialConversationId
   );
+  const [selectedCategory, setSelectedCategory] = useState<string>("");
 
   const abortControllerRef = useRef<AbortController | null>(null);
+  const previousInitialConversationIdRef = useRef<string | undefined>(initialConversationId);
+
+  // Resetear selectedCategory cuando se cambia de conversación existente a nueva conversación
+  useEffect(() => {
+    if (previousInitialConversationIdRef.current !== undefined && initialConversationId === undefined) {
+      setSelectedCategory("");
+    }
+    previousInitialConversationIdRef.current = initialConversationId;
+  }, [initialConversationId]);
 
   // Función de polling con exponential backoff para obtener título generado
   const pollForTitle = useCallback(async (conversationId: string, maxAttempts = 5, initialDelay = 500) => {
@@ -65,6 +75,14 @@ export function useChat(options: UseChatOptions = {}) {
 
   // Detectar cambio de conversación desde el sidebar
   useEffect(() => {
+    // Resetear selectedCategory cuando se cambia a nueva conversación (sin ID)
+    if (!initialConversationId && conversationId) {
+      setMessages([]);
+      setConversationId(undefined);
+      setSelectedCategory("");
+      return;
+    }
+
     const loadConversationMessages = async () => {
       if (initialConversationId && initialConversationId !== conversationId) {
         // Si cambió a una conversación diferente, cargar mensajes
@@ -86,10 +104,6 @@ export function useChat(options: UseChatOptions = {}) {
         } finally {
           setIsLoadingMessages(false);
         }
-      } else if (!initialConversationId && conversationId) {
-        // Cambió a nueva conversación
-        setMessages([]);
-        setConversationId(undefined);
       }
     };
 
@@ -125,6 +139,7 @@ export function useChat(options: UseChatOptions = {}) {
               .concat(userMessage)
               .map((m) => ({ role: m.role, content: m.content })),
             conversationId,
+            category: !conversationId && selectedCategory ? selectedCategory : undefined,
           }),
           signal: abortControllerRef.current.signal,
         });
@@ -147,7 +162,7 @@ export function useChat(options: UseChatOptions = {}) {
             id: newConversationId,
             userId: "",
             title: "Generando título...",
-            category: null,
+            category: selectedCategory || undefined,
             preview: content.substring(0, 100),
             createdAt: new Date(),
             updatedAt: new Date(),
@@ -231,7 +246,7 @@ export function useChat(options: UseChatOptions = {}) {
         abortControllerRef.current = null;
       }
     },
-    [messages, conversationId, isLoading, onResponse, onError, pollForTitle]
+    [messages, conversationId, selectedCategory, isLoading, onResponse, onError, pollForTitle]
   );
 
   const stop = useCallback(() => {
@@ -245,6 +260,7 @@ export function useChat(options: UseChatOptions = {}) {
     setMessages([]);
     setInput("");
     setConversationId(undefined);
+    setSelectedCategory("");
   }, []);
 
   return {
@@ -257,5 +273,7 @@ export function useChat(options: UseChatOptions = {}) {
     stop,
     reset,
     conversationId,
+    selectedCategory,
+    setSelectedCategory,
   };
 }

@@ -2,7 +2,9 @@ import { z } from "zod";
 
 export const createConversationSchema = z.object({
   title: z.string().min(1).max(100),
-  category: z.enum(["civil", "penal", "laboral", "mercantil"]).optional(),
+  category: z.enum(["civil", "penal", "laboral", "mercantil"], {
+    message: "La categoría es obligatoria",
+  }),
 });
 
 export const updateConversationSchema = z.object({
@@ -26,6 +28,16 @@ export const chatRequestSchema = z.object({
     })
   ).min(1, "Debe haber al menos un mensaje"),
   conversationId: z.string().cuid().optional(),
+  category: z.enum(["civil", "penal", "laboral", "mercantil"]).optional(),
+}).refine((data) => {
+  // Si no hay conversationId (nueva conversación), la categoría es obligatoria
+  if (!data.conversationId && !data.category) {
+    return false;
+  }
+  return true;
+}, {
+  message: "La categoría es obligatoria para nuevas conversaciones",
+  path: ["category"],
 });
 
 export type CreateConversationSchema = z.infer<typeof createConversationSchema>;

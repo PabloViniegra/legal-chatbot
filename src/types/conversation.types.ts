@@ -15,7 +15,7 @@ export interface ConversationWithPreview extends Conversation {
 export interface CreateConversationInput {
   userId: string;
   title: string;
-  category?: string;
+  category: string;
 }
 
 export interface UpdateConversationInput {

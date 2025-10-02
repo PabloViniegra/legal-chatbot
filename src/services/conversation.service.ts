@@ -37,11 +37,16 @@ export class ConversationService {
   }
 
   async createConversation(data: CreateConversationInput) {
-    logger.debug("createConversation - Input data", { userId: data.userId, title: data.title });
+    logger.debug("createConversation - Input data", { userId: data.userId, title: data.title, category: data.category });
 
     if (!data.userId || !data.title) {
       logger.warn("Validation failed - missing userId or title");
       throw new ValidationError("Usuario y título requeridos");
+    }
+
+    if (!data.category) {
+      logger.warn("Validation failed - missing category");
+      throw new ValidationError("La categoría es obligatoria para nuevas conversaciones");
     }
 
     logger.debug("Creating conversation with transaction");

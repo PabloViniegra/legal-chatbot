@@ -5,14 +5,14 @@ import { logger } from "@/lib/logger";
 import type { ChatMessage } from "@/types/message.types";
 import { NotFoundError, ValidationError } from "@/lib/errors";
 import OpenAI from "openai";
-import { systemPrompt } from "@/lib/ai-config";
+import { getSystemPrompt, type LegalCategory } from "@/lib/ai-config";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY!,
 });
 
 export class ChatService {
-  async createOrGetConversation(userId: string, conversationId?: string) {
+  async createOrGetConversation(userId: string, conversationId?: string, category?: string) {
     if (conversationId) {
       const conversation = await conversationRepository.findById(
         conversationId,
@@ -24,10 +24,16 @@ export class ChatService {
       return conversation;
     }
 
+    // Validar que se proporcione categoría para nuevas conversaciones
+    if (!category) {
+      throw new ValidationError("La categoría es obligatoria para nuevas conversaciones");
+    }
+
     // Crear nueva conversación
     return conversationRepository.create({
       userId,
       title: "Nueva consulta",
+      category,
     });
   }
 
@@ -132,10 +138,12 @@ export class ChatService {
     });
   }
 
-  async generateResponse(messages: ChatMessage[]) {
+  async generateResponse(messages: ChatMessage[], category?: LegalCategory) {
     if (!messages || messages.length === 0) {
       throw new ValidationError("Se requieren mensajes para generar respuesta");
     }
+
+    const systemPrompt = getSystemPrompt(category);
 
     const response = await openai.chat.completions.create({
       model: "gpt-4o",

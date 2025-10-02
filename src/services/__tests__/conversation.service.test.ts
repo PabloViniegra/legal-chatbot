@@ -145,6 +145,58 @@ describe('ConversationService', () => {
       );
     });
 
+    it('debería lanzar ValidationError si falta categoría (obligatoria)', async () => {
+      const invalidInput = {
+        userId: 'user_123456',
+        title: 'Test',
+        category: '', // Categoría vacía
+      };
+
+      await expect(service.createConversation(invalidInput)).rejects.toThrow(
+        ValidationError
+      );
+      await expect(service.createConversation(invalidInput)).rejects.toThrow(
+        'La categoría es obligatoria para nuevas conversaciones'
+      );
+    });
+
+    it('debería aceptar todas las categorías válidas', async () => {
+      const categories = ['civil', 'penal', 'laboral', 'mercantil'] as const;
+
+      // Mock de prisma transaction para simular creación exitosa
+      const mockPrisma = await import('@/lib/prisma');
+      const mockTransaction = vi.fn().mockImplementation(async (callback) => {
+        return await callback({
+          conversation: {
+            create: vi.fn().mockResolvedValue({
+              id: 'conv_123',
+              userId: 'user_123456',
+              title: 'Test',
+              category: 'civil',
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            }),
+          },
+          message: {
+            create: vi.fn().mockResolvedValue({}),
+          },
+        });
+      });
+
+      (mockPrisma.default.$transaction as any) = mockTransaction;
+
+      for (const category of categories) {
+        const input = {
+          userId: 'user_123456',
+          title: 'Test',
+          category,
+        };
+
+        // No debería lanzar error
+        await service.createConversation(input);
+      }
+    });
+
     // Skipped: transaction tests require complex Prisma mocking
     it.skip('debería crear una nueva conversación con mensaje inicial', async () => {
       // Requires mockTransaction setup

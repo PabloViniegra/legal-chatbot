@@ -26,18 +26,19 @@ export async function POST(req: Request) {
     await ensureUserExists(userId);
 
     const body = await req.json();
-    logger.debug("Request body", { conversationId: body.conversationId, messagesCount: body.messages?.length });
+    logger.debug("Request body", { conversationId: body.conversationId, messagesCount: body.messages?.length, category: body.category });
 
-    const { messages, conversationId } = chatRequestSchema.parse(body);
-    logger.debug("Parsed data", { conversationId, messagesCount: messages.length });
+    const { messages, conversationId, category } = chatRequestSchema.parse(body);
+    logger.debug("Parsed data", { conversationId, messagesCount: messages.length, category });
 
     // Crear o obtener conversación
     logger.debug("Creating or getting conversation");
     const conversation = await chatService.createOrGetConversation(
       userId,
-      conversationId
+      conversationId,
+      category
     );
-    logger.debug("Conversation", { id: conversation.id });
+    logger.debug("Conversation", { id: conversation.id, category: conversation.category });
 
     // Guardar mensaje del usuario
     const lastUserMessage = messages[messages.length - 1];
@@ -53,9 +54,12 @@ export async function POST(req: Request) {
     logger.debug("Logging query");
     await chatService.logQuery(userId, lastUserMessage.content);
 
-    // Generar respuesta con OpenAI
+    // Generar respuesta con OpenAI usando la categoría de la conversación
     logger.debug("Generating AI response");
-    const response = await chatService.generateResponse(messages);
+    const response = await chatService.generateResponse(
+      messages,
+      conversation.category as "civil" | "penal" | "laboral" | "mercantil" | undefined
+    );
 
     // Crear stream y manejar completion
     let fullResponse = "";
